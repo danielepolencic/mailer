@@ -1,6 +1,5 @@
 require 'sinatra'
 require 'sinatra/json'
-require 'rack/contrib/jsonp'
 require 'liquid'
 require 'liquid_blocks'
 require 'pony'
@@ -9,7 +8,6 @@ require 'json'
 require 'multi_json'
 require './config.rb'
 
-use Rack::JSONP
 
 before '/send' do
   unless params[:api_key] && ( params[:api_key].to_i == settings.api_key.to_i )

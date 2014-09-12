@@ -2,7 +2,6 @@
 Simple mailing service.
 
 ## Features
-- JSONP compatible
 - Heroku compatible
 - Uses free tier on Sendgrid
 - HTTP API
