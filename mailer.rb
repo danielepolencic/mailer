@@ -15,7 +15,7 @@ before do
       @params = JSON.parse request.body.read, :symbolize_names => true
     end
   rescue Exception => e
-    halt 500, {'Content-Type' => 'application/json'}, {:ok => false, :message => "Invalid JSON. Error #{ e.to_s }"}.to_json
+    halt 500, {'Content-Type' => 'application/json'}, {:ok => false, :message => "Invalid JSON. Error #{ e.to_s.force_encoding('ISO-8859-1') }"}.to_json
   end
 end
 
