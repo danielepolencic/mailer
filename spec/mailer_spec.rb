@@ -19,6 +19,13 @@ describe 'Mailer' do
     body['message'].should match /api key not valid/i
   end
 
+  it 'should fail silently if the body is not json' do
+    post '/send', 'not % a & json', 'CONTENT_TYPE' => 'application/json'
+    body = JSON.parse last_response.body
+    last_response.should_not be_ok
+    body['message'].should match /invalid json/i
+  end
+
   it 'should fail if the api key is not correct' do
     post '/send', { api_key: 'wrongapi_key' }.to_json
     body = JSON.parse last_response.body

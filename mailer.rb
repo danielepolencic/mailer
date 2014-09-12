@@ -9,9 +9,13 @@ require 'multi_json'
 require './config.rb'
 
 before do
-  if request.body.size > 0
-    request.body.rewind
-    @params = JSON.parse request.body.read, :symbolize_names => true
+  begin
+    if request.body.size > 0
+      request.body.rewind
+      @params = JSON.parse request.body.read, :symbolize_names => true
+    end
+  rescue Exception => e
+    halt 500, {'Content-Type' => 'application/json'}, {:ok => false, :message => "Invalid JSON. Error #{ e.to_s }"}.to_json
   end
 end
 
