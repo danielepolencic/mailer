@@ -1,2 +1,2 @@
-require './spammer'
+require './mailer'
 run Sinatra::Application
