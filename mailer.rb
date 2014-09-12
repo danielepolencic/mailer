@@ -8,36 +8,42 @@ require 'json'
 require 'multi_json'
 require './config.rb'
 
+before do
+  if request.body.size > 0
+    request.body.rewind
+    @params = JSON.parse request.body.read, :symbolize_names => true
+  end
+end
 
 before '/send' do
-  unless params[:api_key] && ( params[:api_key].to_i == settings.api_key.to_i )
+  unless params[:api_key] && ( /#{settings.api_key}/.match params[:api_key] )
     halt 403, {'Content-Type' => 'application/json'}, {:ok => false, :message => 'API KEY not valid.'}.to_json
   end
 end
 
-get "/" do
+get '/' do
   erb :usage
 end
 
-get "/send" do
+post '/send' do
 
-  unless validEmail?( params[:to_email] )
+  unless validEmail?( params[:email] )
     status 403
     return json :ok => false, :message => 'Email not valid.'
   end
 
-  if params[:message].nil? || params[:subject].nil?
+  if params[:template].nil? || params[:subject].nil?
     status 403
-    return json :ok => false, :message => 'Missing fields.'
+    return json :ok => false, :message => 'Invalid template or subject.'
   end
 
-  html = liquid params[:message], :locals => params
+  html = liquid params[:template], :locals => params[:data] || {}
   text = if params[:text] then params[:text] else html end
 
   begin
     Pony.mail(
       :from => "#{ params[:from_name] } <#{ params[:from_email] }>",
-      :to => "#{ params[:to_email] }",
+      :to => "#{ params[:email] }",
       :subject => "#{ params[:subject] }",
       :body => text,
       :html_body => html,

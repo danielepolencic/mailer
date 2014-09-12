@@ -1,7 +1,8 @@
 require 'rack/test'
+require 'json'
 require_relative '../mailer'
 
-API_KEY = 123
+API_KEY = '123'
 EMAIL = 'demo@test.it'
 
 def app
@@ -12,50 +13,51 @@ describe 'Mailer' do
   include Rack::Test::Methods
 
   it 'should fail if there is no api key' do
-    get '/send'
+    post '/send'
+    body = JSON.parse last_response.body
     last_response.should_not be_ok
+    body['message'].should match /api key not valid/i
   end
 
   it 'should fail if the api key is not correct' do
-    get '/send', params = { api_key: 'wrongapi_key' }
+    post '/send', { api_key: 'wrongapi_key' }.to_json
+    body = JSON.parse last_response.body
     last_response.should_not be_ok
+    body['message'].should match /api key not valid/i
   end
 
   it 'should fail if the email is not correct' do
-    get "/send", params = { api_key: API_KEY, to_email: 'wrongemail' }
+    post '/send', { api_key: API_KEY, email: 'wrongemail' }.to_json
+    body = JSON.parse last_response.body
     last_response.should_not be_ok
+    body['message'].should match /email not valid/i
   end
 
-  it 'should fail if message is empty' do
-    get "/send", params = { api_key: API_KEY, to_email: EMAIL, subject: 'blabla' }
+  it 'should fail if template is empty' do
+    post '/send', { api_key: API_KEY, email: EMAIL, subject: 'blabla' }.to_json
+    body = JSON.parse last_response.body
     last_response.should_not be_ok
-  end
-
-  it 'should fail if subject is empty' do
-    get "/send", params = { api_key: API_KEY, to_email: EMAIL, message: 'blabla' }
-    last_response.should_not be_ok
+    body['message'].should match /invalid template or subject/i
   end
 
   it 'should send an email' do
-    get "/send", params = { api_key: API_KEY, to_email: EMAIL, message: 'blabla', subject: 'blabla' }
+    post '/send', { api_key: API_KEY, email: EMAIL, template: 'blabla', subject: 'blabla' }.to_json
+    body = JSON.parse last_response.body
     last_response.should be_ok
+    body['ok'].should be true
   end
 
   it 'should correctly parse the template and send an email' do
     Pony.stub(:deliver)
     Pony.should_receive(:deliver) do |mail|
       mail.to.should == [ EMAIL ]
-      mail.subject.should == 'blabla'
+      mail.subject.should == 'this is the subject'
       mail.body.parts.first.body.include? 'Clark Kent'
     end
-    get "/send", params = { api_key: API_KEY, to_email: EMAIL, message: 'Hello {{ to_name }}', subject: 'blabla', to_name: 'Clark Kent' }
+    post '/send', { api_key: API_KEY, email: EMAIL, template: 'Hello {{ name }}', subject: 'this is the subject', data: { name: 'Clark Kent' }}.to_json
+    body = JSON.parse last_response.body
     last_response.should be_ok
-  end
-
-  it 'should correctly parse a JSONP request and send an email' do
-    get "/send", params = { api_key: API_KEY, to_email: EMAIL, message: 'Hello {{ to_name }}', subject: 'blabla', to_name: 'World', callback: 'mycallback' }
-    last_response.should be_ok
-    last_response.body.include? 'mycallback'
+    body['ok'].should be true
   end
 
 end

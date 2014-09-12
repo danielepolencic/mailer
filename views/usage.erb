@@ -7,16 +7,22 @@
 <body>
   <h1>Mailer</h1>
   <h2>Usage:</h2>
-  <h3>GET /send</h3>
-  <p>Send email. Parameters (*required):</p>
-  <ul>
-    <li>to_email*</li>
-    <li>api_key*</li>
-    <li>message*</li>
-    <li>subject*</li>
-    <li>from_email</li>
-    <li>from_name</li>
-  </ul>
-  <p>All the extra parameters are passed to the templating engine (<a href="https://github.com/Shopify/liquid">Liquid</a>).</p>
+  <h3>POST /send</h3>
+  <p>Send email. Parameters:</p>
+  <pre>
+{
+    "api_key": 123,
+    "email": "receiver@email.com",
+    "template": "&lt;h1&gt;Hello {{name}}&lt;/h1&gt;",
+    "subject": "This is the subject",
+    "from_email": "sender@email.com",
+    "from_name": "Daniele",
+    "text": "text only message",
+    "data": {
+        "any": "thing"
+    }
+}
+  </pre>
+  <p>All the extra parameters in <code>data</code> are passed to the templating engine (<a href="https://github.com/Shopify/liquid">Liquid</a>).</p>
 </body>
 </html>
